@@ -14,7 +14,8 @@ def train(model, data_loader, optimizer, loss_fun, device):
     correct = 0
     for data, target in data_loader:
         data = data.to(device).float()
-        target = target.to(device).long()
+        # target = target.to(device).long()
+        target = target.to(device)
         output = model(data)
         loss = loss_fun(output, target)
         loss_all += loss.item()
@@ -37,7 +38,8 @@ def test(model, data_loader, loss_fun, device):
     with torch.no_grad():
         for data, target in data_loader:
             data = data.to(device).float()
-            target = target.to(device).long()
+            target = target.to(device)
+            # target = target.to(device).long()
             output = model(data)
             loss = loss_fun(output, target)
             loss_all += loss.item()

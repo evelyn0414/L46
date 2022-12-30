@@ -8,13 +8,14 @@ from alg.core.comm import communication
 
 
 class fedavg(torch.nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
         super(fedavg, self).__init__()
         self.server_model, self.client_model, self.client_weight = modelsel(
-            args, args.device)
-        self.optimizers = [optim.SGD(params=self.client_model[idx].parameters(
+            args, args.device, model)
+        self.optimizers = [optimizer(params=self.client_model[idx].parameters(
         ), lr=args.lr) for idx in range(args.n_clients)]
-        self.loss_fun = nn.CrossEntropyLoss()
+
+        self.loss_fun = loss
         self.args = args
 
     def client_train(self, c_idx, dataloader, round):

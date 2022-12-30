@@ -1,11 +1,13 @@
 # coding=utf-8
 from alg.fedavg import fedavg
 from util.traineval import train, train_prox
+import torch.nn as nn
+import torch.optim as optim
 
 
 class fedprox(fedavg):
-    def __init__(self, args):
-        super(fedprox, self).__init__(args)
+    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
+        super(fedprox, self).__init__(args, model, loss, optimizer)
 
     def client_train(self, c_idx, dataloader, round):
         if round > 0:
