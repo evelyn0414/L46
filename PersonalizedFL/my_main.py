@@ -91,7 +91,7 @@ def initialize_args(device="cpu"):
     parser.add_argument('--seed', type=int, default=42, help='random seed')
 
     # algorithm-specific parameters
-    parser.add_argument('--mu', type=float, default=1,  #1e-3,
+    parser.add_argument('--mu', type=float, default=1e-3,
                         help='The hyper parameter for fedprox')
     parser.add_argument('--threshold', type=float, default=0.6,
                         help='threshold to use copy or distillation, hyperparmeter for metafed')

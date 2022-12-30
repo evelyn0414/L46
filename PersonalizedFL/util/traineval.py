@@ -57,7 +57,8 @@ def train_prox(args, model, server_model, data_loader, optimizer, loss_fun, devi
     correct = 0
     for step, (data, target) in enumerate(data_loader):
         data = data.to(device).float()
-        target = target.to(device).long()
+        # target = target.to(device).long()
+        target = target.to(device)
         output = model(data)
         loss = loss_fun(output, target)
         if step > 0:
