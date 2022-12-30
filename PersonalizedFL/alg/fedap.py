@@ -6,11 +6,12 @@ import torch
 
 from alg.fedavg import fedavg
 from util.traineval import pretrain_model
-
+import torch.nn as nn
+import torch.optim as optim
 
 class fedap(fedavg):
-    def __init__(self, args):
-        super(fedap, self).__init__(args)
+    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
+        super(fedap, self).__init__(args, model, loss, optimizer)
 
     def set_client_weight(self, train_loaders):
         os.makedirs('./checkpoint/'+'pretrained/', exist_ok=True)

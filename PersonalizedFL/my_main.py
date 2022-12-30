@@ -54,9 +54,9 @@ def train_dataset():
     ]
 
 
-def initialize_args(device="cpu"):
+def initialize_args(alg="fedavg", device="cpu"):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--alg', type=str, default='fedprox',
+    parser.add_argument('--alg', type=str, default=alg,
                         help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
     # parser.add_argument('--datapercent', type=float,
     #                     default=1e-1, help='data percent to use')
@@ -103,8 +103,8 @@ def initialize_args(device="cpu"):
     return args
 
 
-def train(strategy="fedprox", device="cpu"):
-    args = initialize_args(device)
+def train(strategy="fedavg", device="cpu"):
+    args = initialize_args(strategy, device)
     SAVE_PATH = os.path.join('./cks/', strategy)
 
     algclass = algs.get_algorithm_class(strategy)(args, Baseline(), BaselineLoss(), Optimizer)
@@ -165,4 +165,4 @@ def train(strategy="fedprox", device="cpu"):
 
 
 if __name__ == '__main__':
-    train()
+    train("fedap")

@@ -3,7 +3,28 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="/FLamby/flamby/benchmarks/test_res_0.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/FLamby/flamby/datasets/fed_heart_disease/dataset_creation_scripts/heart_disease_dataset/download_status_file.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/dp_example/results_fed_heart_disease.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/results/results_benchmark_fed_camelyon16/cam16_vf_seed42.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -17,7 +38,28 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/FLamby/flamby/results/results_benchmark_fed_camelyon16/cam16_vf_seed44.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/FLamby/flamby/results/results_benchmark_fed_camelyon16/cam16_vf_seed46.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/results/results_benchmark_fed_heart_disease/heart_seed42.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/results/results_benchmark_fed_heart_disease/heart_seed43.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
