@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from datautil.datasplit import define_pretrain_dataset
 from datautil.prepare_data import get_whole_dataset
-
+from datautil.importdata import pretrain_dataset
 
 def train(model, data_loader, optimizer, loss_fun, device):
     model.train()
@@ -120,12 +120,15 @@ def trainwithteacher(model, data_loader, optimizer, loss_fun, device, tmodel, la
     return loss_all / len(data_loader), correct/total
 
 
-def pretrain_model(args, model, filename, device='cuda'):
+def pretrain_model(args, model, filename, device='cuda', train_loaders=None):
     print('===training pretrained model===')
-    data = get_whole_dataset(args.dataset)(args)
-    predata = define_pretrain_dataset(args, data)
-    traindata = torch.utils.data.DataLoader(
-        predata, batch_size=args.batch, shuffle=True)
+    if train_loaders is None:
+        data = get_whole_dataset(args.dataset)(args)
+        predata = define_pretrain_dataset(args, data)
+        traindata = torch.utils.data.DataLoader(
+            predata, batch_size=args.batch, shuffle=True)
+    else:
+        traindata = pretrain_dataset(args)
     loss_fun = nn.CrossEntropyLoss()
     opt = optim.SGD(params=model.parameters(), lr=args.lr)
     for _ in range(args.pretrained_iters):

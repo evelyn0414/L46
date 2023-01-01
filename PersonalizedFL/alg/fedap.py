@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from alg.fedavg import fedavg
+from alg.fedbn import fedbn
 from util.traineval import pretrain_model
 import torch.nn as nn
 import torch.optim as optim
@@ -16,15 +17,33 @@ class fedap(fedavg):
     def set_client_weight(self, train_loaders):
         os.makedirs('./checkpoint/'+'pretrained/', exist_ok=True)
         preckpt = './checkpoint/'+'pretrained/' + \
-            self.args.dataset+'_'+str(self.args.batch)
+            "fed-heart-disease" +str(self.args.batch)
+            # self.args.dataset+'_'+str(self.args.batch)
         self.pretrain_model = copy.deepcopy(
             self.server_model).to(self.args.device)
-        if not os.path.exists(preckpt):
-            pretrain_model(self.args, self.pretrain_model,
-                           preckpt, self.args.device)
+
+        self.args.alg = "fedbn"
+        bn = fedbn(self.args, self.pretrain_model, self.loss_fun)
+        for _ in range(3):
+            for wi in range(100):
+                for client_idx in range(self.args.n_clients):
+                    bn.client_train(client_idx, train_loaders[client_idx], 0)
+        bn.server_aggre()
+        self.pretrain_model = bn.server_model
+        torch.save({
+            'state': self.pretrain_model.state_dict(),
+            # 'acc': acc
+        }, preckpt)
+        self.args.alg = "fedap"
+
+        # if not os.path.exists(preckpt + "umm"):
+        #     pretrain_model(self.args, self.pretrain_model,
+        #                    preckpt, self.args.device, train_loaders)
+
         self.preckpt = preckpt
         self.client_weight = get_weight_preckpt(
-            self.args, self.pretrain_model, self.preckpt, train_loaders, self.client_weight)
+            self.args, self.pretrain_model, self.preckpt, train_loaders, self.client_weight, device=self.args.device)
+        print(self.client_weight)
 
 
 def get_form(model):

@@ -9,3 +9,6 @@ class Baseline(nn.Module):
 
     def forward(self, x):
         return torch.sigmoid(self.linear(x))
+
+    def getallfea(self, x):
+        return self.linear(x).clone().detach()

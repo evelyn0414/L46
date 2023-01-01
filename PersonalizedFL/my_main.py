@@ -67,7 +67,7 @@ def initialize_args(alg="fedavg", device="cpu"):
     parser.add_argument('--save_path', type=str,
                         default='./cks/', help='path to save the checkpoint')
     parser.add_argument('--device', type=str,
-                        default='cpu', help='[cuda | cpu]')
+                        default=device, help='[cuda | cpu]')
     parser.add_argument('--batch', type=int, default=BATCH_SIZE, help='batch size')
     parser.add_argument('--iters', type=int, default=get_nb_max_rounds(100), # 300
                         help='iterations for communication')
@@ -119,12 +119,19 @@ def train(strategy="fedavg", device="cpu"):
     start_iter, n_rounds = 0, get_nb_max_rounds(100)
     wk_iters = 100
 
+    if strategy == 'fedap':
+        algclass.set_client_weight(train_loaders)
+    elif args.alg == 'metafed':
+        algclass.init_model_flag(train_loaders, val_loaders)
+        args.iters = args.iters-1
+        print('Common knowledge accumulation stage')
+
+    res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
+    print("before training", res)
+
     for a_iter in range(start_iter, n_rounds):
         print(f"============ Train round {a_iter} ============")
 
-
-        res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
-        print("before training", res)
 
         if strategy == 'metafed':
             pass
@@ -165,4 +172,4 @@ def train(strategy="fedavg", device="cpu"):
 
 
 if __name__ == '__main__':
-    train("fedap")
+    train("fedap", "cpu")
