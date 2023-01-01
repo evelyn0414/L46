@@ -8,14 +8,17 @@ make install
 conda activate flamby
 ```
 
-If the make command does not work (as in acs-gpu ended up with the following error)
+If (like in Windows), the make command does not work (as in acs-gpu ended up with the following error)
 ```
 /bin/sh: 2: /opt/conda/envs/flamby/bin/pip: not found
 make: *** [Makefile:8: install] Error 127
 ```
 
-try
+Try this instead:
 ```
+cd FLamby
+conda env create -f environment.yml
+conda activate flamby
 pip install -e .[all_extra]
 ```
 
