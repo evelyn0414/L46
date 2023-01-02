@@ -3,6 +3,7 @@ from util.evalandprint import evalandprint
 import os
 import torch
 import numpy as np
+# from flamby.datasets.fed_isic2019 import (
 from flamby.datasets.fed_heart_disease import (
     BATCH_SIZE,
     LR,
@@ -16,6 +17,7 @@ from flamby.datasets.fed_heart_disease import (
 )
 import argparse
 from flamby.datasets.fed_heart_disease import FedHeartDisease as FedDataset
+# from flamby.datasets.fed_isic2019 import FedIsic2019 as FedDataset
 from flamby.utils import evaluate_model_on_tests
 
 
@@ -172,4 +174,4 @@ def train(strategy="fedavg", device="cpu"):
 
 
 if __name__ == '__main__':
-    train("fedap", "cpu")
+    train("metafed", "cuda" if torch.cuda.is_available() else "cpu")

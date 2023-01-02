@@ -11,13 +11,14 @@ from util.traineval import trainwithteacher, test
 
 
 class metafed(torch.nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
         super(metafed, self).__init__()
         self.server_model, self.client_model, self.client_weight = modelsel(
-            args, args.device)
+            args, args.device, model)
         self.optimizers = [optim.SGD(params=self.client_model[idx].parameters(
         ), lr=args.lr) for idx in range(args.n_clients)]
-        self.loss_fun = nn.CrossEntropyLoss()
+        # self.loss_fun = nn.CrossEntropyLoss()
+        self.loss_fun = loss
         args.sort = ''
         for i in range(args.n_clients):
             args.sort += '%d-' % i
@@ -43,14 +44,14 @@ class metafed(torch.nn.Module):
                               self.loss_fun, self.args.device)
             if val_acc > self.args.threshold:
                 self.flagl[idx] = True
-        if self.args.dataset in ['vlcs', 'pacs']:
-            self.thes = 0.4
-        elif 'medmnist' in self.args.dataset:
-            self.thes = 0.5
-        elif 'pamap' in self.args.dataset:
-            self.thes = 0.5
-        else:
-            self.thes = 0.5
+        # if self.args.dataset in ['vlcs', 'pacs']:
+        #     self.thes = 0.4
+        # elif 'medmnist' in self.args.dataset:
+        #     self.thes = 0.5
+        # elif 'pamap' in self.args.dataset:
+        #     self.thes = 0.5
+        # else:
+        self.thes = 0.5
 
     def update_flag(self, val_loaders):
         for client_idx, model in enumerate(self.client_model):

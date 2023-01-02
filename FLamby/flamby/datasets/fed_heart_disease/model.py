@@ -12,3 +12,6 @@ class Baseline(nn.Module):
 
     def getallfea(self, x):
         return self.linear(x).clone().detach()
+
+    def get_sel_fea(self, x):
+        return self.linear(x).clone().detach()

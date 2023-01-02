@@ -102,7 +102,8 @@ def trainwithteacher(model, data_loader, optimizer, loss_fun, device, tmodel, la
         optimizer.zero_grad()
 
         data = data.to(device).float()
-        target = target.to(device).long()
+        # target = target.to(device).long()
+        target = target.to(device)
         output = model(data)
         f1 = model.get_sel_fea(data, args.plan)
         loss = loss_fun(output, target)
