@@ -22,6 +22,12 @@ conda activate flamby
 pip install -e .[all_extra]
 ```
 
+In HPC we also need to run the followinig before `conda activate`
+```
+conda init bash
+source ~/.bash_profile
+```
+
 To download the datasets:
 
 Fed-Heart-Disease
