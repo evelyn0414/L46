@@ -3,25 +3,41 @@ import numpy as np
 import torch
 
 
-def evalandprint(n_clients, algclass, train_loaders, val_loaders, test_loaders, SAVE_PATH, best_acc, best_tacc, a_iter, best_changed, metric=None):
+def evalandprint(n_clients, algclass, train_loaders, val_loaders, test_loaders, SAVE_PATH, best_acc, best_tacc, a_iter, best_changed, metric=None, best_metric=None):
     # evaluation on training data
-    if not isinstance(n_clients, int):
-        n_clients = n_clients.n_clients
-    for client_idx in range(n_clients):
-        train_loss, train_acc = algclass.client_eval(
-            client_idx, train_loaders[client_idx])
-        # print(
-        #     f' Site-{client_idx:02d} | Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}')
-
-    # evaluation on valid data
-    val_acc_list = [None] * n_clients
-    for client_idx in range(n_clients):
-        val_loss, val_acc = algclass.client_eval(
-            client_idx, val_loaders[client_idx])
-        val_acc_list[client_idx] = val_acc
+    # if not isinstance(n_clients, int):
+    #     n_clients = n_clients.n_clients
+    # for client_idx in range(n_clients):
+    #     train_loss, train_acc = algclass.client_eval(
+    #         client_idx, train_loaders[client_idx])
+    #     # print(
+    #         # f' Site-{client_idx:02d} | Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}')
+    #
+    # # evaluation on valid data
+    # val_acc_list = [None] * n_clients
+    # for client_idx in range(n_clients):
+    #     val_loss, val_acc = algclass.client_eval(
+    #         client_idx, val_loaders[client_idx])
+    #     val_acc_list[client_idx] = val_acc
         # print(
         #     f' Site-{client_idx:02d} | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}')
 
+    if metric is not None:
+        from flamby.utils import evaluate_model_on_tests
+    res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
+    print(res)
+
+    if best_metric is None or res[f"client_test_{n_clients}"] > best_metric:
+        best_metric = res[f"client_test_{n_clients}"]
+        print(f' Saving the local and server checkpoint to {SAVE_PATH}')
+        tosave = {'best_epoch': a_iter, 'best_metric': best_metric, 'best_tacc': np.mean(np.array(best_tacc))}
+        for i,tmodel in enumerate(algclass.client_model):
+            tosave['client_model_'+str(i)]=tmodel.state_dict()
+        tosave['server_model']=algclass.server_model.state_dict()
+        torch.save(tosave, SAVE_PATH)
+
+
+    return best_metric, res
     # if np.mean(val_acc_list) > np.mean(best_acc):
     #     for client_idx in range(n_clients):
     #         best_acc[client_idx] = val_acc_list[client_idx]
@@ -44,9 +60,4 @@ def evalandprint(n_clients, algclass, train_loaders, val_loaders, test_loaders, 
     #     tosave['server_model']=algclass.server_model.state_dict()
     #     torch.save(tosave, SAVE_PATH)
 
-    if metric is not None:
-        from flamby.utils import evaluate_model_on_tests
-        res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
-        print(res)
-
-    return best_acc, best_tacc, best_changed
+    # return best_acc, best_tacc, best_changed

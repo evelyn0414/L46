@@ -1,9 +1,10 @@
 from alg import algs
-from util.evalandprint import evalandprint
 import os
 import torch
 import numpy as np
+from tqdm import tqdm
 # from flamby.datasets.fed_isic2019 import (
+# from flamby.datasets.fed_camelyon16 import (
 from flamby.datasets.fed_heart_disease import (
     BATCH_SIZE,
     LR,
@@ -16,6 +17,9 @@ from flamby.datasets.fed_heart_disease import (
     Optimizer
 )
 import argparse
+# dataset_name = "fed_isic2019"
+dataset_name = "fed_heart_disease"
+ROUND_PER_SAVE = 1
 from flamby.datasets.fed_heart_disease import FedHeartDisease as FedDataset
 # from flamby.datasets.fed_isic2019 import FedIsic2019 as FedDataset
 from flamby.utils import evaluate_model_on_tests
@@ -60,40 +64,29 @@ def initialize_args(alg="fedavg", device="cpu"):
     parser = argparse.ArgumentParser()
     parser.add_argument('--alg', type=str, default=alg,
                         help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
-    # parser.add_argument('--datapercent', type=float,
-    #                     default=1e-1, help='data percent to use')
-    # parser.add_argument('--dataset', type=str, default='pacs',
-    #                     help='[vlcs | pacs | officehome | pamap | covid | medmnist]')
-    # parser.add_argument('--root_dir', type=str,
-    #                     default='./data/', help='data path')
     parser.add_argument('--save_path', type=str,
                         default='./cks/', help='path to save the checkpoint')
     parser.add_argument('--device', type=str,
                         default=device, help='[cuda | cpu]')
     parser.add_argument('--batch', type=int, default=BATCH_SIZE, help='batch size')
-    parser.add_argument('--iters', type=int, default=get_nb_max_rounds(100), # 300
+    parser.add_argument('--iters', type=int, default=get_nb_max_rounds(NUM_EPOCHS_POOLED), # 300
                         help='iterations for communication')
     parser.add_argument('--lr', type=float, default=LR, help='learning rate')
     parser.add_argument('--n_clients', type=int,
                         default=NUM_CLIENTS, help='number of clients')
-    parser.add_argument('--wk_iters', type=int, default=100, #changed
+    parser.add_argument('--wk_iters', type=int, default=NUM_EPOCHS_POOLED, #changed from 1
                         help='optimization iters in local worker between communication')
     parser.add_argument('--nosharebn', action='store_true',
                         help='not share bn')
 
-    # I have no idea of
-    # parser.add_argument('--non_iid_alpha', type=float,
-    #                     default=0.1, help='data split for label shift')
-    # parser.add_argument('--partition_data', type=str,
-    #                     default='non_iid_dirichlet', help='partition data way')
     parser.add_argument('--plan', type=int,
                         default=1, help='choose the feature type')
     parser.add_argument('--pretrained_iters', type=int,
                         default=150, help='iterations for pretrained models')
-    parser.add_argument('--seed', type=int, default=42, help='random seed')
+    parser.add_argument('--seed', type=int, default=0, help='random seed')
 
     # algorithm-specific parameters
-    parser.add_argument('--mu', type=float, default=1e-3,
+    parser.add_argument('--mu', type=float, default=1e-2,
                         help='The hyper parameter for fedprox')
     parser.add_argument('--threshold', type=float, default=0.6,
                         help='threshold to use copy or distillation, hyperparmeter for metafed')
@@ -107,19 +100,27 @@ def initialize_args(alg="fedavg", device="cpu"):
 
 def train(strategy="fedavg", device="cpu"):
     args = initialize_args(strategy, device)
-    SAVE_PATH = os.path.join('./cks/', strategy)
+    SAVE_PATH = os.path.join('./cks/', dataset_name + "_" + strategy)
+    SAVE_LOG = os.path.join('./cks/', "log_" + dataset_name + "_" + strategy)
 
     algclass = algs.get_algorithm_class(strategy)(args, Baseline(), BaselineLoss(), Optimizer)
-    # print(algclass)
-    best_changed = False
     train_loaders = train_dataset()
     test_loaders = local_test_datasets() + global_test_dataset()
     val_loaders = local_test_datasets()
 
-    best_acc = [0] * NUM_CLIENTS
-    best_tacc = [0] * NUM_CLIENTS
-    start_iter, n_rounds = 0, get_nb_max_rounds(100)
-    wk_iters = 100
+    start_iter, n_rounds = 0, get_nb_max_rounds(NUM_EPOCHS_POOLED)
+    wk_iters = NUM_EPOCHS_POOLED
+    logs, client_logs = [],  [[] for _ in range(NUM_CLIENTS)]
+
+    print("strategy:", strategy)
+    if os.path.exists(SAVE_PATH):
+        logs, client_logs = load_model(SAVE_PATH, algclass)
+        start_iter = len(logs)
+        print(f"============ Loaded model from train round {start_iter} ============")
+        for i, l in enumerate(logs):
+            print("round", i)
+            print(l)
+        print(client_logs)
 
     if strategy == 'fedap':
         algclass.set_client_weight(train_loaders)
@@ -134,44 +135,80 @@ def train(strategy="fedavg", device="cpu"):
     for a_iter in range(start_iter, n_rounds):
         print(f"============ Train round {a_iter} ============")
 
-
         if strategy == 'metafed':
-            pass
-            # for c_idx in range(NUM_CLIENTS):
-            #     algclass.client_train(
-            #         c_idx, train_loaders[algclass.csort[c_idx]], a_iter)
-            # algclass.update_flag(val_loaders)
+            for c_idx in range(NUM_CLIENTS):
+                algclass.client_train(
+                    c_idx, train_loaders[algclass.csort[c_idx]], a_iter)
+            algclass.update_flag(val_loaders)
         else:
             # local client training
-            for wi in range(wk_iters):
+            for wi in tqdm(range(wk_iters)):
                 for client_idx in range(NUM_CLIENTS):
                     algclass.client_train(client_idx, train_loaders[client_idx], a_iter)
 
             # server aggregation
             algclass.server_aggre()
 
-        best_acc, best_tacc, best_changed = evalandprint(
-            NUM_CLIENTS, algclass, train_loaders, val_loaders, test_loaders, SAVE_PATH, best_acc, best_tacc, a_iter, best_changed, metric=metric)
+        res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
+        logs.append(res)
+        print("performance of server model", res)
+        for i, tmodel in enumerate(algclass.client_model):
+            client_res = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric)
+            performance = client_res["client_test_0"]
+            print(f"result for client model {i}:", performance)
+            client_logs[i].append(performance)
 
-    # res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
-    # print("final result", res)
-    # if args.alg == 'metafed':
-    #     print('Personalization stage')
-    #     for c_idx in range(NUM_CLIENTS):
-    #         algclass.personalization(
-    #             c_idx, train_loaders[algclass.csort[c_idx]], val_loaders[algclass.csort[c_idx]])
-    #     best_acc, best_tacc, best_changed = evalandprint(
-    #         NUM_CLIENTS, algclass, train_loaders, val_loaders, test_loaders, SAVE_PATH, best_acc, best_tacc, a_iter, best_changed)
+        if a_iter % ROUND_PER_SAVE == 0:
+            print(f' Saving the local and server checkpoint to {SAVE_PATH}')
+            tosave = {'current_epoch': a_iter, 'current_metric': res[f"client_test_{NUM_CLIENTS}"], 'logs': np.array(logs), "client_logs": np.array(client_logs)}
+            for i,tmodel in enumerate(algclass.client_model):
+                tosave['client_model_'+str(i)]=tmodel.state_dict()
+            tosave['server_model']=algclass.server_model.state_dict()
+            torch.save(tosave, SAVE_PATH)
+            tosave_log = {'server_logs': logs, 'client_logs': client_logs}
+            torch.save(tosave_log, SAVE_LOG)
 
-    # s = 'Personalized test acc for each client: '
-    # for item in best_tacc:
-    #     s += f'{item:.4f},'
-    # mean_acc_test = np.mean(np.array(best_tacc))
-    # s += f'\nAverage accuracy: {mean_acc_test:.4f}'
-    # print(s)
+    if args.alg == 'metafed':
+        print('Personalization stage')
+        for c_idx in range(NUM_CLIENTS):
+            algclass.personalization(
+                c_idx, train_loaders[algclass.csort[c_idx]], val_loaders[algclass.csort[c_idx]])
+            res = evaluate_model_on_tests(algclass.client_model[c_idx], [test_loaders[c_idx]], metric)
+            print(f"final result for client {c_idx}:", res["client_test_0"])
 
-    return 0
+    print(logs)
+    print(client_logs)
+
+
+def load_model(SAVE_PATH, algclass):
+    print(f"============ Loading model ============")
+    loaded = torch.load(SAVE_PATH, map_location=torch.device('cpu'))
+    algclass.server_model.load_state_dict(loaded["server_model"])
+    test_loaders = global_test_dataset()
+    res = evaluate_model_on_tests(algclass.server_model, test_loaders, metric)
+    print("server performance:", res["client_test_0"])
+    test_loaders = local_test_datasets()
+    for i, tmodel in enumerate(algclass.client_model):
+        tmodel.load_state_dict(loaded['client_model_'+str(i)])
+        res = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric)
+        print(f"performance for client {i}:", res["client_test_0"])
+    return loaded["logs"].tolist(), loaded["client_logs"].tolist()
+
+
+def load_log(SAVE_LOG):
+    loaded = torch.load(SAVE_LOG, map_location=torch.device('cpu'))
+    logs = loaded["server_logs"]
+    client_logs = loaded["client_logs"]
+    return logs.tolist(), client_logs.tolist()
 
 
 if __name__ == '__main__':
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--alg', type=str, default="fedavg",
+    #                     help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
+    # args = parser.parse_args()
+    # train(args.alg, "cuda" if torch.cuda.is_available() else "cpu")
+
     train("metafed", "cuda" if torch.cuda.is_available() else "cpu")
+
+    # load_log("./cks/log_fed_heart_disease_fedavg")
