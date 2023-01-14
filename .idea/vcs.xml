@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/FLamby" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/MsPFL" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/PersonalizedFL" vcs="Git" />
   </component>
 </project>
