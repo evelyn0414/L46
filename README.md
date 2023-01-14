@@ -8,7 +8,7 @@ make install
 conda activate flamby
 ```
 
-If (like in Windows), the make command does not work (as in acs-gpu ended up with the following error)
+If the make command does not work ((like in Windows, or as in acs-gpu, ended up with the following error)
 ```python resize_images.py
 /bin/sh: 2: /opt/conda/envs/flamby/bin/pip: not found
 make: *** [Makefile:8: install] Error 127
@@ -28,21 +28,27 @@ conda init bash
 source ~/.bash_profile
 ```
 
-To download the datasets:
+The command line to download the datasets:
 
 Fed-Heart-Disease
 ```
-cd FLamby
-cd flamby/datasets/fed_heart_disease/dataset_creation_scripts
+cd FLamby/flamby/datasets/fed_heart_disease/dataset_creation_scripts
 python download.py --output-folder ./heart_disease_dataset
 ```
 
-Fed-ISIC2019
+Fed-IXI
+
 ```
-cd FLamby
-cd flamby/datasets/fed_isic2019/dataset_creation_scripts
+cd FLamby/flamby/datasets/fed_ixi/dataset_creation_scripts
+python download.py -o IXI-Dataset
+```
+
+Fed-ISIC2019
+
+```
+cd FLamby/flamby/datasets/fed_isic2019/dataset_creation_scripts
 python download_isic.py --output-folder ./isic2019_dataset
 python resize_images.py
 ```
 
-Code for testing the dataset is in `main.py` and code for comparing the strategies is in `PersonalizedFL/my_main.py`.
+The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`, with another `README.md` file to navigate the code.
