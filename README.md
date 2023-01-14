@@ -1,4 +1,8 @@
-# L46
+# L46 project
+
+This is the codebase for the L46 project *Personalized Federated Learning in Real-world Healthcare Applications across Different Frameworks*.
+
+## Dataset
 
 Set up the environment for using the dataset:
 
@@ -51,4 +55,9 @@ python download_isic.py --output-folder ./isic2019_dataset
 python resize_images.py
 ```
 
-The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`, with another `README.md` file to navigate the code.
+## MsPFL implementation
+
+The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`,  and concluded experimental results can be found in `MsPFL/res.csv`. We have another `README.md` file in the folder to navigate the code in detail.
+
+## Flwr implementation
+
