@@ -10,8 +10,8 @@ from datautil.importdata import pretrain_dataset
 def train(model, data_loader, optimizer, loss_fun, device):
     model.train()
     loss_all = 0
-    total = 0
-    correct = 0
+    # total = 0
+    # correct = 0
     for data, target in data_loader:
         data = data.to(device).float()
         # target = target.to(device).long()
@@ -19,22 +19,21 @@ def train(model, data_loader, optimizer, loss_fun, device):
         output = model(data)
         loss = loss_fun(output, target)
         loss_all += loss.item()
-        total += target.size(0)
-        pred = output.data.max(1)[1]
-        correct += pred.eq(target.view(-1)).sum().item()
+        # total += target.size(0)
+        # pred = output.data.max(1)[1]
+        # correct += pred.eq(target.view(-1)).sum().item()
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    return loss_all / len(data_loader), correct/total
+    return loss_all / len(data_loader), None
 
 
-def test(model, data_loader, loss_fun, device):
+def test(model, data_loader, loss_fun, device, metric=None):
     model.eval()
     loss_all = 0
-    total = 0
-    correct = 0
+    res = 0
     with torch.no_grad():
         for data, target in data_loader:
             data = data.to(device).float()
@@ -43,11 +42,15 @@ def test(model, data_loader, loss_fun, device):
             output = model(data)
             loss = loss_fun(output, target)
             loss_all += loss.item()
-            total += target.size(0)
-            pred = output.data.max(1)[1]
-            correct += pred.eq(target.view(-1)).sum().item()
+            # total += target.size(0)
+            # pred = output.data.max(1)[1]
+            # correct += pred.eq(target.view(-1)).sum().item()
+        if metric:
+            from flamby.utils import evaluate_model_on_tests
+            res = evaluate_model_on_tests(model, [data_loader], metric)
+            res = res["client_test_0"]
 
-        return loss_all / len(data_loader), correct/total
+        return loss_all / len(data_loader), res
 
 
 def train_prox(args, model, server_model, data_loader, optimizer, loss_fun, device):
@@ -74,11 +77,11 @@ def train_prox(args, model, server_model, data_loader, optimizer, loss_fun, devi
         optimizer.step()
 
         loss_all += loss.item()
-        total += target.size(0)
-        pred = output.data.max(1)[1]
-        correct += pred.eq(target.view(-1)).sum().item()
+        # total += target.size(0)
+        # pred = output.data.max(1)[1]
+        # correct += pred.eq(target.view(-1)).sum().item()
 
-    return loss_all / len(data_loader), correct/total
+    return loss_all / len(data_loader), 0
 
 
 def trainwithteacher(model, data_loader, optimizer, loss_fun, device, tmodel, lam, args, flag):
@@ -111,14 +114,14 @@ def trainwithteacher(model, data_loader, optimizer, loss_fun, device, tmodel, la
             f2 = tmodel.get_sel_fea(data, args.plan).detach()
             loss += (lam*F.mse_loss(f1, f2))
         loss_all += loss.item()
-        total += target.size(0)
-        pred = output.data.max(1)[1]
-        correct += pred.eq(target.view(-1)).sum().item()
+        # total += target.size(0)
+        # pred = output.data.max(1)[1]
+        # correct += pred.eq(target.view(-1)).sum().item()
 
         loss.backward()
         optimizer.step()
 
-    return loss_all / len(data_loader), correct/total
+    return loss_all / len(data_loader), 0
 
 
 def pretrain_model(args, model, filename, device='cuda', train_loaders=None):

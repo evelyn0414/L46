@@ -14,18 +14,18 @@ from alg import algs
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--alg', type=str, default='fedavg',
+    parser.add_argument('--alg', type=str, default='fedap',
                         help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
     parser.add_argument('--datapercent', type=float,
                         default=1e-1, help='data percent to use')
-    parser.add_argument('--dataset', type=str, default='pacs',
+    parser.add_argument('--dataset', type=str, default='medmnist',
                         help='[vlcs | pacs | officehome | pamap | covid | medmnist]')
     parser.add_argument('--root_dir', type=str,
                         default='./data/', help='data path')
     parser.add_argument('--save_path', type=str,
                         default='./cks/', help='path to save the checkpoint')
     parser.add_argument('--device', type=str,
-                        default='cuda', help='[cuda | cpu]')
+                        default='cpu', help='[cuda | cpu]')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--iters', type=int, default=300,
                         help='iterations for communication')

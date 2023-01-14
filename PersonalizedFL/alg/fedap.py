@@ -10,6 +10,7 @@ from util.traineval import pretrain_model
 import torch.nn as nn
 import torch.optim as optim
 
+
 class fedap(fedavg):
     def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
         super(fedap, self).__init__(args, model, loss, optimizer)
@@ -22,19 +23,21 @@ class fedap(fedavg):
         self.pretrain_model = copy.deepcopy(
             self.server_model).to(self.args.device)
 
-        self.args.alg = "fedbn"
-        bn = fedbn(self.args, self.pretrain_model, self.loss_fun)
-        for _ in range(3):
-            for wi in range(100):
-                for client_idx in range(self.args.n_clients):
-                    bn.client_train(client_idx, train_loaders[client_idx], 0)
-        bn.server_aggre()
-        self.pretrain_model = bn.server_model
+        if self.args.dataset != "fed_isic2019":
+            self.args.alg = "fedbn"
+            bn = fedbn(self.args, self.pretrain_model, self.loss_fun)
+            for _ in range(3):
+                for wi in range(100):
+                    for client_idx in range(self.args.n_clients):
+                        bn.client_train(client_idx, train_loaders[client_idx], 0)
+            bn.server_aggre()
+            self.pretrain_model = bn.server_model
+            self.args.alg = "fedap"
+
         torch.save({
             'state': self.pretrain_model.state_dict(),
             # 'acc': acc
         }, preckpt)
-        self.args.alg = "fedap"
 
         # if not os.path.exists(preckpt + "umm"):
         #     pretrain_model(self.args, self.pretrain_model,
@@ -51,8 +54,10 @@ def get_form(model):
     tmpv = []
     for name in model.state_dict().keys():
         if 'running_mean' in name:
+            print("tmpm", name)
             tmpm.append(model.state_dict()[name].detach().to('cpu').numpy())
         if 'running_var' in name:
+            print("tmpv", name)
             tmpv.append(model.state_dict()[name].detach().to('cpu').numpy())
     return tmpm, tmpv
 
@@ -104,9 +109,16 @@ def get_weight_preckpt(args, model, preckpt, trainloadrs, client_weights, device
             for data, _ in trainloadrs[i]:
                 data = data.to(device).float()
                 fea = model.getallfea(data)
+                # fea = model.getfinalfea(data)
                 nl = len(data)
                 tm, tv = [], []
                 for item in fea:
+                    print(item.shape)
+                    if len(item.shape) == 5:
+                        tm.append(torch.mean(
+                            item, dim=[0, 2, 3, 4]).detach().to('cpu').numpy())
+                        tv.append(
+                            torch.var(item, dim=[0, 2, 3, 4]).detach().to('cpu').numpy())
                     if len(item.shape) == 4:
                         tm.append(torch.mean(
                             item, dim=[0, 2, 3]).detach().to('cpu').numpy())
@@ -138,9 +150,14 @@ class metacount(object):
     def update(self, m, tm, tv):
         tmpcount = self.count+m
         for i in range(self.bl):
+            # print("self.mean[i].shape =", self.mean[i].shape)
+            # print("self.count =", self.count)
+            # print("tm[i].shape =", tm[i].shape)
+            # print("m =", m)
+            # print("tmpcount =", tmpcount)
             tmpm = (self.mean[i]*self.count + tm[i]*m)/tmpcount
             self.var[i] = (self.count*(self.var[i]+np.square(tmpm -
-                           self.mean[i])) + m*(tv[i]+np.square(tmpm-tm[i])))/tmpcount
+                                                             self.mean[i])) + m*(tv[i]+np.square(tmpm-tm[i])))/tmpcount
             self.mean[i] = tmpm
         self.count = tmpcount
 

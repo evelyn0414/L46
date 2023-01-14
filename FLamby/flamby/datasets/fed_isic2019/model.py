@@ -35,6 +35,20 @@ class Baseline(nn.Module):
         out = self.base_model(image)
         return out
 
+    def getallfea(self, x):
+        fealist = []
+        efnet = self.base_model
+        x = efnet._conv_stem(x)
+        fealist.append(x.clone().detach())
+        x = efnet._swish(efnet._bn0(x))
+        for idx, block in enumerate(efnet._blocks):
+            drop_connect_rate = efnet._global_params.drop_connect_rate
+            if drop_connect_rate:
+                drop_connect_rate *= float(idx) / len(efnet._blocks)  # scale drop connect_rate
+            x = block(x, drop_connect_rate=drop_connect_rate)
+        x = efnet._conv_head(x)
+        fealist.append(x.clone().detach())
+        return fealist
 
 if __name__ == "__main__":
 

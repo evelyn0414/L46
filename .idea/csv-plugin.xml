@@ -17,6 +17,34 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/FLamby/flamby/datasets/fed_ixi/metadata/metadata_tiny.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/datasets/fed_kits19/metadata/thresholded_sites.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/datasets/fed_lidc_idri/metadata/metadata.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/FLamby/flamby/datasets/fed_tcga_brca/dataset_creation_scripts/train_test_split.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/FLamby/flamby/dp_example/results_fed_heart_disease.csv">
           <value>
             <Attribute>

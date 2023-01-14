@@ -11,7 +11,7 @@ from util.traineval import trainwithteacher, test
 
 
 class metafed(torch.nn.Module):
-    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD):
+    def __init__(self, args, model=None, loss=nn.CrossEntropyLoss(), optimizer=optim.SGD, metric=None):
         super(metafed, self).__init__()
         self.server_model, self.client_model, self.client_weight = modelsel(
             args, args.device, model)
@@ -25,6 +25,7 @@ class metafed(torch.nn.Module):
         args.sort = args.sort[:-1]
         self.args = args
         self.csort = [int(item) for item in args.sort.split('-')]
+        self.metric = metric
 
     def init_model_flag(self, train_loaders, val_loaders):
         self.flagl = []
@@ -40,9 +41,11 @@ class metafed(torch.nn.Module):
             for _ in range(30):
                 _, _ = trainwithteacher(
                     model, train_loader, optimizer, self.loss_fun, self.args.device, tmodel, 1, self.args, False)
-            _, val_acc = test(model, val_loader,
-                              self.loss_fun, self.args.device)
-            if val_acc > self.args.threshold:
+            _, val_metric = test(model, val_loader,
+                              self.loss_fun, self.args.device, self.metric)
+            if val_metric > self.args.threshold:
+                print(idx)
+                print(val_metric)
                 self.flagl[idx] = True
         # if self.args.dataset in ['vlcs', 'pacs']:
         #     self.thes = 0.4

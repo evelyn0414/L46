@@ -3,9 +3,10 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
-# from flamby.datasets.fed_isic2019 import (
+from flamby.datasets.fed_isic2019 import (
+# from flamby.datasets.fed_ixi import (
 # from flamby.datasets.fed_camelyon16 import (
-from flamby.datasets.fed_heart_disease import (
+# from flamby.datasets.fed_heart_disease import (
     BATCH_SIZE,
     LR,
     NUM_EPOCHS_POOLED,
@@ -17,13 +18,15 @@ from flamby.datasets.fed_heart_disease import (
     Optimizer
 )
 import argparse
+dataset_name = "fed_ixi"
 # dataset_name = "fed_isic2019"
-dataset_name = "fed_heart_disease"
+# dataset_name = "fed_heart_disease"
 ROUND_PER_SAVE = 1
 from flamby.datasets.fed_heart_disease import FedHeartDisease as FedDataset
 # from flamby.datasets.fed_isic2019 import FedIsic2019 as FedDataset
-from flamby.utils import evaluate_model_on_tests
+# from flamby.datasets.fed_ixi import FedIXITiny as FedDataset
 
+from flamby.utils import evaluate_model_on_tests
 
 def global_test_dataset():
     return [
@@ -54,7 +57,8 @@ def train_dataset():
             FedDataset(center = i, train = True, pooled = False),
             batch_size = BATCH_SIZE,
             shuffle = True,
-            num_workers = 0
+            num_workers = 0,
+            drop_last=True,
         )
         for i in range(NUM_CLIENTS)
     ]
@@ -64,6 +68,8 @@ def initialize_args(alg="fedavg", device="cpu"):
     parser = argparse.ArgumentParser()
     parser.add_argument('--alg', type=str, default=alg,
                         help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
+    parser.add_argument('--dataset', type=str, default="fed-heart-disease",
+                        help='Dataset to choose: [fed-heart-disease | fed-isic2019 | fed_camelyon16]')
     parser.add_argument('--save_path', type=str,
                         default='./cks/', help='path to save the checkpoint')
     parser.add_argument('--device', type=str,
@@ -76,7 +82,7 @@ def initialize_args(alg="fedavg", device="cpu"):
                         default=NUM_CLIENTS, help='number of clients')
     parser.add_argument('--wk_iters', type=int, default=NUM_EPOCHS_POOLED, #changed from 1
                         help='optimization iters in local worker between communication')
-    parser.add_argument('--nosharebn', action='store_true',
+    parser.add_argument('--nosharebn', action='store_true', default=True,
                         help='not share bn')
 
     parser.add_argument('--plan', type=int,
@@ -103,7 +109,7 @@ def train(strategy="fedavg", device="cpu"):
     SAVE_PATH = os.path.join('./cks/', dataset_name + "_" + strategy)
     SAVE_LOG = os.path.join('./cks/', "log_" + dataset_name + "_" + strategy)
 
-    algclass = algs.get_algorithm_class(strategy)(args, Baseline(), BaselineLoss(), Optimizer)
+    algclass = algs.get_algorithm_class(strategy)(args, Baseline(BN=True), BaselineLoss(), Optimizer)
     train_loaders = train_dataset()
     test_loaders = local_test_datasets() + global_test_dataset()
     val_loaders = local_test_datasets()
@@ -199,7 +205,51 @@ def load_log(SAVE_LOG):
     loaded = torch.load(SAVE_LOG, map_location=torch.device('cpu'))
     logs = loaded["server_logs"]
     client_logs = loaded["client_logs"]
-    return logs.tolist(), client_logs.tolist()
+    return logs, client_logs
+
+
+def calculate_stable_performance(logs, client_logs):
+    window_size = 3
+    client_num = len(client_logs)
+    client_res = []
+    server_res = np.mean([log[f"client_test_{client_num}"] for log in logs[-window_size:]])
+    for client in range(client_num):
+        client_res.append(np.mean(client_logs[client][-window_size:]))
+    return [server_res] + client_res
+    # return server_res, client_res
+
+
+def get_res_from_log(strategy):
+    # print(dataset_name, strategy)
+    SAVE_LOG = os.path.join('./cks/', "log_" + dataset_name + "_" + strategy)
+    logs, client_logs = load_log(SAVE_LOG)
+    res = calculate_stable_performance(logs, client_logs)
+    for c in res:
+        print(c, end="\t")
+    print(np.mean(res[1:]), end="\t")
+    print(np.std(res[1:]), end="\t")
+    print("")
+
+
+def MCD_evaluation(device="cpu"):
+    from uncertainty import evaluate_model_on_tests, evaluate
+    strategy = "fedavg"
+    args = initialize_args(strategy, device)
+    SAVE_PATH = os.path.join('./cks/', dataset_name + "_" + strategy)
+    SAVE_LOG = os.path.join('./cks/', "log_" + dataset_name + "_" + strategy)
+
+    algclass = algs.get_algorithm_class(strategy)(args, Baseline(), BaselineLoss(), Optimizer)
+    test_loaders = local_test_datasets() + global_test_dataset()
+
+    logs, client_logs = load_model(SAVE_PATH, algclass)
+
+    print(f"============ MC-Dropout Test ============")
+    dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(algclass.server_model, test_loaders, metric, MCDO=True, T=1000, return_pred=True)
+    evaluate(dict_cindex, y_true, y_pred, variance, entropy, id="server")
+
+    for i, tmodel in enumerate(algclass.client_model):
+        dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric, MCDO=True, T=1000, return_pred=True)
+        evaluate(dict_cindex, y_true, y_pred, variance, entropy, id=i)
 
 
 if __name__ == '__main__':
@@ -208,7 +258,23 @@ if __name__ == '__main__':
     #                     help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
     # args = parser.parse_args()
     # train(args.alg, "cuda" if torch.cuda.is_available() else "cpu")
+    # train("fedap", "cuda" if torch.cuda.is_available() else "cpu")
+    # for alg in "fedavg | fedbn | fedprox | fedap | metafed".split(" | "):
+    #     train(alg, "cuda" if torch.cuda.is_available() else "cpu")
 
-    train("metafed", "cuda" if torch.cuda.is_available() else "cpu")
+    # get_res_from_log("fedavg"),
+    # get_res_from_log("fedprox"),
+    # get_res_from_log("fedbn"),
+    # get_res_from_log("fedap")
+    get_res_from_log("fedap")
+    # get_res_from_log("metafed")
 
-    # load_log("./cks/log_fed_heart_disease_fedavg")
+    # MCD_evaluation()
+    # model = Baseline()
+    # from alg.fedap import get_form
+    # get_form(model)
+    # print(model)
+    # # load_log("./cks/log_fed_heart_disease_fedavg")
+
+
+    # print(get_nb_max_rounds(NUM_EPOCHS_POOLED), NUM_EPOCHS_POOLED)
