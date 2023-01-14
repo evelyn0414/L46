@@ -247,9 +247,13 @@ def MCD_evaluation(device="cpu"):
     dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(algclass.server_model, test_loaders, metric, MCDO=True, T=1000, return_pred=True)
     evaluate(dict_cindex, y_true, y_pred, variance, entropy, id="server")
 
-    for i, tmodel in enumerate(algclass.client_model):
-        dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric, MCDO=True, T=1000, return_pred=True)
-        evaluate(dict_cindex, y_true, y_pred, variance, entropy, id=i)
+    # test_dataloaders = local_test_datasets() + global_test_dataset()
+    # dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(m, test_dataloaders, metric, return_pred=True, MCDO=True, T=T)
+    # evaluate(dict_cindex, y_true, y_pred, variance, entropy, id="fedavg")
+
+    # for i, tmodel in enumerate(algclass.client_model):
+    #     dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric, MCDO=True, T=1000, return_pred=True)
+    #     evaluate(dict_cindex, y_true, y_pred, variance, entropy, id=i)
 
 
 if __name__ == '__main__':
@@ -266,7 +270,7 @@ if __name__ == '__main__':
     # get_res_from_log("fedprox"),
     # get_res_from_log("fedbn"),
     # get_res_from_log("fedap")
-    get_res_from_log("fedap")
+    # get_res_from_log("fedap")
     # get_res_from_log("metafed")
 
     # MCD_evaluation()
@@ -278,3 +282,4 @@ if __name__ == '__main__':
 
 
     # print(get_nb_max_rounds(NUM_EPOCHS_POOLED), NUM_EPOCHS_POOLED)
+    MCD_evaluation()
