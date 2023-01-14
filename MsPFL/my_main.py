@@ -18,15 +18,16 @@ from flamby.datasets.fed_isic2019 import (
     Optimizer
 )
 import argparse
-dataset_name = "fed_ixi"
-# dataset_name = "fed_isic2019"
+# dataset_name = "fed_ixi"
+dataset_name = "fed_isic2019"
 # dataset_name = "fed_heart_disease"
 ROUND_PER_SAVE = 1
-from flamby.datasets.fed_heart_disease import FedHeartDisease as FedDataset
-# from flamby.datasets.fed_isic2019 import FedIsic2019 as FedDataset
+# from flamby.datasets.fed_heart_disease import FedHeartDisease as FedDataset
+from flamby.datasets.fed_isic2019 import FedIsic2019 as FedDataset
 # from flamby.datasets.fed_ixi import FedIXITiny as FedDataset
 
 from flamby.utils import evaluate_model_on_tests
+
 
 def global_test_dataset():
     return [
@@ -231,37 +232,12 @@ def get_res_from_log(strategy):
     print("")
 
 
-def MCD_evaluation(device="cpu"):
-    from uncertainty import evaluate_model_on_tests, evaluate
-    strategy = "fedavg"
-    args = initialize_args(strategy, device)
-    SAVE_PATH = os.path.join('./cks/', dataset_name + "_" + strategy)
-    SAVE_LOG = os.path.join('./cks/', "log_" + dataset_name + "_" + strategy)
-
-    algclass = algs.get_algorithm_class(strategy)(args, Baseline(), BaselineLoss(), Optimizer)
-    test_loaders = local_test_datasets() + global_test_dataset()
-
-    logs, client_logs = load_model(SAVE_PATH, algclass)
-
-    print(f"============ MC-Dropout Test ============")
-    dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(algclass.server_model, test_loaders, metric, MCDO=True, T=1000, return_pred=True)
-    evaluate(dict_cindex, y_true, y_pred, variance, entropy, id="server")
-
-    # test_dataloaders = local_test_datasets() + global_test_dataset()
-    # dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(m, test_dataloaders, metric, return_pred=True, MCDO=True, T=T)
-    # evaluate(dict_cindex, y_true, y_pred, variance, entropy, id="fedavg")
-
-    # for i, tmodel in enumerate(algclass.client_model):
-    #     dict_cindex, y_true, y_pred, variance, entropy = evaluate_model_on_tests(tmodel, [test_loaders[i]], metric, MCDO=True, T=1000, return_pred=True)
-    #     evaluate(dict_cindex, y_true, y_pred, variance, entropy, id=i)
-
-
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--alg', type=str, default="fedavg",
-    #                     help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
-    # args = parser.parse_args()
-    # train(args.alg, "cuda" if torch.cuda.is_available() else "cpu")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--alg', type=str, default="fedavg",
+                        help='Algorithm to choose: [base | fedavg | fedbn | fedprox | fedap | metafed ]')
+    args = parser.parse_args()
+    train(args.alg, "cuda" if torch.cuda.is_available() else "cpu")
     # train("fedap", "cuda" if torch.cuda.is_available() else "cpu")
     # for alg in "fedavg | fedbn | fedprox | fedap | metafed".split(" | "):
     #     train(alg, "cuda" if torch.cuda.is_available() else "cpu")
@@ -273,13 +249,3 @@ if __name__ == '__main__':
     # get_res_from_log("fedap")
     # get_res_from_log("metafed")
 
-    # MCD_evaluation()
-    # model = Baseline()
-    # from alg.fedap import get_form
-    # get_form(model)
-    # print(model)
-    # # load_log("./cks/log_fed_heart_disease_fedavg")
-
-
-    # print(get_nb_max_rounds(NUM_EPOCHS_POOLED), NUM_EPOCHS_POOLED)
-    MCD_evaluation()
