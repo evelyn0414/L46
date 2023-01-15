@@ -71,4 +71,4 @@ The main function for comparing the strategies using MsPFL framework is in `MsPF
 
 ## Flwr implementation
 
-We provide two version of excecutive code both in `.ipynb` notebook and `.py` python file, with instructions in `installation notes.docx` in the folder.
+We further provide specific instructions in the folder with another `README.md` file. Experimental results are shown in the table.

@@ -78,7 +78,7 @@ In Fed-Heart-Disease with BN, MetaFed comes first in each client's model perform
 | **fedAP**   | /      | 0.8261 | 0.7160 | 0.8162 | 0.7340 | 0.6925 | 0.7515 | 0.7560     | 0.0542     |
 | **metaFed** | /      | 0.7964 | 0.7263 | 0.7072 | 0.4886 | 0.4380 | 0.6772 | 0.6390     | 0.1425     |
 
-## Reference
+## References
 
 [1] McMahan, Brendan, et al. "Communication-efficient learning of deep networks from decentralized data." Artificial intelligence and statistics. PMLR, 2017.
 
