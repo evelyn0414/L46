@@ -74,7 +74,7 @@ Fed-ISIC2019
 | **fedbn**   | /      | 0.7747 | 0.6197 | 0.7415 | 0.7339 | 0.6818 | 0.7316 | 0.7139     | 0.0549     |
 | **fedAP**   | /      | 0.8380 | 0.6924 | 0.7981 | 0.7406 | 0.6944 | 0.7462 | 0.7516     | 0.0575     |
 
-## Reference
+## References
 
 [1] McMahan, Brendan, et al. "Communication-efficient learning of deep networks from decentralized data." Artificial intelligence and statistics. PMLR, 2017.
 
@@ -86,6 +86,6 @@ Fed-ISIC2019
 
 [5] Beutel, Daniel J., et al. "Flower: A Friendly Federated Learning Research Framework." ArXiv, abs/2007.14390.
 
-## Acknowledgement
+## Acknowledgements
 
 We thank for [Flower](https://flower.dev/) for providing the excellent federated learning framework.
