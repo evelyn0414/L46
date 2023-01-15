@@ -4,6 +4,8 @@ This is the codebase for the L46 project *Personalized Federated Learning in Rea
 
 ## Dataset
 
+### Environment
+
 Set up the environment for using the dataset:
 
 ```
@@ -32,6 +34,14 @@ conda init bash
 source ~/.bash_profile
 ```
 
+Another useful command to debug with HPC environment when encountering error with PyTorch:
+
+```
+pip3 install torch==1.13.0+cu116 torchvision==0.14.0+cu116 -f https://download.pytorch.org/whl/torch_stable.html
+```
+
+### Downloading
+
 The command line to download the datasets:
 
 Fed-Heart-Disease
@@ -57,7 +67,8 @@ python resize_images.py
 
 ## MsPFL implementation
 
-The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`,  and concluded experimental results can be found in `MsPFL/res.csv`. We have another `README.md` file in the folder to navigate the code in detail.
+The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`,  and concluded experimental results can be found in `MsPFL/res.csv`. We have another `README.md` file in the folder to help execute and navigate the code in detail.
 
 ## Flwr implementation
 
+We further provide instructions in the folder.
