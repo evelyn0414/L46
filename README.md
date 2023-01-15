@@ -67,7 +67,7 @@ python resize_images.py
 
 ## MsPFL implementation
 
-The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`. Please refer to `./MsPFLfolder/README.md` for help to execute and navigate the code in detail. The experimental results of the four strategies + metaFed is also included.
+The main function for comparing the strategies using MsPFL framework is in `MsPFL/my_main.py`. Please refer to `./MsPFLfolder/README.md` for help to execute and navigate the code in detail. The experimental results of the five strategies (four in the report + metaFed) is also included.
 
 ## Flwr implementation
 

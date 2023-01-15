@@ -36,17 +36,19 @@ The results of MetaFed is not compared in the report as it is not implemented in
 
 In Fed-Heart-Disease with BN, MetaFed comes first in each client's model performance and achieves the best fairness measured by variance. However, in the other two datasets, MetaFed ends up with the worst performance and worst fairness. The experiments cannot be repeated in Flower and we have not yet done more experiments to analyze the reason behind.
 
-Fed-Heart-Disease (1-layer MLP)
+#### **Fed-Heart-Disease (1-layer MLP)**
 
 |             | server | 0      | 1      | 2      | 3      | client avg | client std |
 | ----------- | ------ | ------ | ------ | ------ | ------ | ---------- | ---------- |
 | **fedAvg**  | 0.7717 | 0.7596 | 0.7640 | 0.7500 | 0.6444 | 0.7295     | 0.057      |
 | **fedProx** | 0.7677 | 0.7500 | 0.7528 | 0.8125 | 0.6444 | 0.7399     | 0.070      |
-| **fedbn**   | /      | 0.7596 | 0.7640 | 0.7500 | 0.6444 | 0.7295     | 0.057      |
-| **fedAP**   | /      | 0.7596 | 0.7341 | 0.8125 | 0.7333 | 0.7599     | 0.037      |
+| **fedbn**   | /      | / | / | / | / | /     | /      |
+| **fedAP** \*  | /      | 0.7596 | 0.7341 | 0.8125 | 0.7333 | 0.7599     | 0.037      |
 | **metaFed** | /      | 0.7756 | 0.7640 | 0.7500 | 0.7111 | 0.7502     | 0.028      |
 
-Fed-Heart-Disease (2-layer MLP + BN)
+(\* weight matrix here is calculated with output of the fully connected layer)
+
+#### Fed-Heart-Disease (2-layer MLP + BN)
 
 |             | server | 0      | 1      | 2      | 3      | client avg | client std |
 | ----------- | ------ | ------ | ------ | ------ | ------ | ---------- | ---------- |
@@ -56,7 +58,7 @@ Fed-Heart-Disease (2-layer MLP + BN)
 | **fedAP**   | /      | 0.7212 | 0.7865 | 0.9375 | 0.7778 | 0.8057     | 0.092      |
 | **metaFed** | /      | 0.7660 | 0.7865 | 0.9375 | 0.8074 | 0.8244     | 0.077      |
 
-Fed-IXI
+#### Fed-IXI
 
 |             | server | 0      | 1      | 2      | client avg | client std |
 | ----------- | ------ | ------ | ------ | ------ | ---------- | ---------- |
@@ -66,7 +68,7 @@ Fed-IXI
 | **fedAP**   | /      | 0.9892 | 0.9896 | 0.9874 | 0.9888     | 0.001      |
 | **metaFed** | /      | 0.9825 | 0.9819 | 0.9741 | 0.9795     | 0.005      |
 
-Fed-ISIC2019
+#### Fed-ISIC2019
 
 |             | server | 0      | 1      | 2      | 3      | 4      | 5      | client avg | client std |
 | ----------- | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ---------- | ---------- |
