@@ -32,6 +32,10 @@ Our change to the models to accommodate fedAP and metaFed strategies was made to
 
 ## Results
 
+The results of MetaFed is not compared in the report as it is not implemented in the Flower framework. We still include the results here.
+
+In Fed-Heart-Disease with BN, MetaFed comes first in each client's model performance and achieves the best fairness measured by variance. However, in the other two datasets, MetaFed ends up with the worst performance and worst fairness. The experiments cannot be repeated in Flower and we have not yet done more experiments to analyze the reason behind.
+
 Fed-Heart-Disease (1-layer MLP)
 
 |             | server | 0      | 1      | 2      | 3      | client avg | client std |
