@@ -2,6 +2,8 @@
 
 This is the codebase for the L46 project *Personalized Federated Learning in Real-world Healthcare Applications across Different Frameworks*.
 
+We introduce how to set up the environment and download the datasets here, and details related to the two frameworks will be introduced in the respective folder. The documentation of planning and decision making through the project is in `./schedule.md`.
+
 ## Dataset
 
 ### Environment

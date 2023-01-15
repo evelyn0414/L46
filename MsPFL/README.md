@@ -34,6 +34,8 @@ Our change to the models to accommodate fedAP and metaFed strategies was made to
 
 The results of MetaFed is not compared in the report as it is not implemented in the Flower framework. We still include the results here.
 
+Similar to FedAP, we define a *get\_sel\_fea* function to generate features from the model, which is called each round instead of at the beginning of training. For the 2-layer MLP, we use the input for the BN layer; for EfficientNet-b0, we use the output of the feature extractor; and for 3D U-Net, we use the generated encoding.
+
 In Fed-Heart-Disease with BN, MetaFed comes first in each client's model performance and achieves the best fairness measured by variance. However, in the other two datasets, MetaFed ends up with the worst performance and worst fairness. The experiments cannot be repeated in Flower and we have not yet done more experiments to analyze the reason behind.
 
 #### **Fed-Heart-Disease (1-layer MLP)**
