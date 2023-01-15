@@ -37,18 +37,32 @@ class Baseline(nn.Module):
 
     def getallfea(self, x):
         fealist = []
-        efnet = self.base_model
-        x = efnet._conv_stem(x)
-        fealist.append(x.clone().detach())
-        x = efnet._swish(efnet._bn0(x))
-        for idx, block in enumerate(efnet._blocks):
-            drop_connect_rate = efnet._global_params.drop_connect_rate
-            if drop_connect_rate:
-                drop_connect_rate *= float(idx) / len(efnet._blocks)  # scale drop connect_rate
-            x = block(x, drop_connect_rate=drop_connect_rate)
-        x = efnet._conv_head(x)
-        fealist.append(x.clone().detach())
+        i = 0
+        fea = x
+        flag = 0
+        def dfs(layer):
+            nonlocal fea,i,flag
+            if flag == 1:
+                return
+            name = str(layer)
+            if name.startswith("BatchNorm"):
+                fealist.append(fea.clone().detach())
+                i += 1
+                if i == 49:
+                    flag = 1
+                fea = layer(fea)
+            elif "BatchNorm" in name:
+                for l in layer.children():
+                    dfs(l)
+            else:
+                fea = layer(fea)
+        dfs(self)
         return fealist
+
+
+    def get_sel_fea(self, x, plan):
+        return self.base_model.extract_features(x)
+
 
 if __name__ == "__main__":
 

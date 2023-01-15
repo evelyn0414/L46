@@ -130,6 +130,60 @@ class Baseline(nn.Module):
         x = F.softmax(x, dim=self.CHANNELS_DIMENSION)
         return x
 
+    def getallfea(self, x):
+        fealist = []
+        i = 0
+        skip_connections = []
+        for encoding_block in self.encoder.encoding_blocks:
+            for conv_block in [encoding_block.conv1, encoding_block.conv2]:
+                if "BatchNorm" in str(conv_block):
+                    fea = conv_block.conv_layer(x)
+                    fealist.append(fea.clone().detach())
+                    # print("BN", i)
+                    i += 1
+                    fealist.append(fea.clone().detach())
+                x = conv_block(x)
+            skip_connection = x
+            x = encoding_block.downsample(x)
+            skip_connections.append(skip_connection)
+        for conv_block in self.bottom_block.children():
+            fea = conv_block.conv_layer(x)
+            fealist.append(fea.clone().detach())
+            # print("BN", i)
+            i += 1
+            fealist.append(fea.clone().detach())
+            x = conv_block(x)
+        zipped = zip(reversed(skip_connections), self.decoder.decoding_blocks)
+        for skip_connection, decoding_block in zipped:
+
+            x = decoding_block.upsample(x)
+            skip_connection = decoding_block.center_crop(skip_connection, x)
+            x = torch.cat((skip_connection, x), dim=CHANNELS_DIMENSION)
+
+            fea = decoding_block.conv1.conv_layer(x)
+            fealist.append(fea.clone().detach())
+            # print("BN", i)
+            i += 1
+            fealist.append(fea.clone().detach())
+            x = decoding_block.conv1(x)
+
+            fea = decoding_block.conv2.conv_layer(x)
+            fealist.append(fea.clone().detach())
+            # print("BN", i)
+            i += 1
+            fealist.append(fea.clone().detach())
+            x = decoding_block.conv2(x)
+
+        return fealist
+
+    def get_sel_fea(self, x, plan):
+        skip_connections, encoding = self.encoder(x)
+        encoding = self.bottom_block(encoding)
+        # x = self.decoder(skip_connections, encoding)
+        # if self.monte_carlo_layer is not None:
+        #     x = self.monte_carlo_layer(x)
+        # x = self.classifier(x)
+        return encoding
 
 # Conv
 
